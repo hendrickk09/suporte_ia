@@ -401,9 +401,9 @@ MIT License — veja o arquivo `LICENSE` para detalhes.
 
 ## 👨‍💻 Autor
 
-**Hendrick**  
+**Hendrick Symon**  
 Projeto Integrador — Programação Orientada a Objetos com IA  
-Universidade / Instituição  
+UNIFAPCE 
 2026
 
 ---
@@ -427,6 +427,4 @@ Dúvidas sobre o projeto? Abra uma **Issue** no GitHub.
 - [Padrão MVC](https://pt.wikipedia.org/wiki/Modelo%E2%80%93view%E2%80%93controller)
 - [Segurança em PHP](https://www.php.net/manual/pt_BR/security.php)
 
----
 
-**Made with ❤️ by Hendrick — 2026**
