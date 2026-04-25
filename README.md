@@ -353,7 +353,7 @@ Este é um projeto integrador de **Programação Orientada a Objetos com PHP** d
 ## 📸 Telas do Sistema
 
 ### Login
-![Login](./docs/screenshots/login.png)
+![Login](<img width="1228" height="625" alt="Image" src="https://github.com/user-attachments/assets/a797177f-2785-4d3a-8e47-9cfecd4e15da" />)
 
 ### Dashboard
 ![Dashboard](./docs/screenshots/dashboard.png)
