@@ -356,7 +356,7 @@ Este é um projeto integrador de **Programação Orientada a Objetos com PHP** d
 ![Login](https://github.com/user-attachments/assets/a797177f-2785-4d3a-8e47-9cfecd4e15da)
 
 ### Dashboard
-![Dashboard](./docs/screenshots/dashboard.png)
+<img width="1228" height="771" alt="Image" src="https://github.com/user-attachments/assets/7aa204aa-ebae-4eb3-b7b1-4eef9d08c9e3" />
 
 ### Novo Chamado com Preview de IA
 ![Novo Chamado](./docs/screenshots/novo-chamado.png)
