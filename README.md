@@ -383,13 +383,7 @@ Este é um projeto integrador de **Programação Orientada a Objetos com PHP** d
 - [ ] Paginação da listagem de chamados
 - [ ] Filtros avançados (status, categoria, prioridade, data)
 - [ ] Dashboard com gráficos de tendências
-- [ ] Notificações por e-mail
-- [ ] Export de relatórios em PDF
 - [ ] Testes unitários (PHPUnit)
-- [ ] API REST completa (não só IA)
-- [ ] Autenticação via OAuth (GitHub, Google)
-- [ ] Tema claro/escuro toggle
-- [ ] Suporte a múltiplos idiomas
 
 ---
 
