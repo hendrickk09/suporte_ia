@@ -1,33 +1,61 @@
 <?php
+
 class IAController extends Controller
 {
     private GeminiService $ia;
-    private Chamado $model;
+    private Chamado $chamado;
 
-    public function __construct() { $this->ia = new GeminiService(); $this->model = new Chamado(); }
+    public function __construct()
+    {
+        $this->ia = new GeminiService();
+        $this->chamado = new Chamado();
+    }
 
     public function analisar(): void
     {
         $this->exigirLogin();
-        if (!$this->isPost()) { $this->json(['erro'=>'Método não permitido.'], 405); return; }
+        $this->exigirCsrf($_SERVER['HTTP_X_CSRF_TOKEN'] ?? '');
 
-        $input     = json_decode(file_get_contents('php://input'), true) ?? [];
-        $titulo    = htmlspecialchars(trim($input['titulo']    ?? $this->post('titulo')),    ENT_QUOTES, 'UTF-8');
-        $descricao = htmlspecialchars(trim($input['descricao'] ?? $this->post('descricao')), ENT_QUOTES, 'UTF-8');
+        $input = json_decode(file_get_contents('php://input'), true) ?? [];
+        $titulo = trim((string) ($input['titulo'] ?? ''));
+        $descricao = trim((string) ($input['descricao'] ?? ''));
 
-        if (!$titulo || !$descricao) { $this->json(['erro'=>'Campos obrigatórios.'], 400); return; }
+        if (mb_strlen($titulo) < 5 || mb_strlen($titulo) > 200
+            || mb_strlen($descricao) < 20 || mb_strlen($descricao) > 5000) {
+            $this->json(['erro' => 'Titulo ou descricao invalidos.'], 400);
+        }
 
-        $this->json(['sucesso'=>true, 'analise'=>$this->ia->analisarChamado($titulo, $descricao)]);
+        $analise = $this->ia->analisarChamado($titulo, $descricao);
+        $this->json([
+            'sucesso' => $this->ia->ultimoErro() === null,
+            'analise' => $analise,
+            'erro' => $this->ia->ultimoErro() ? 'Analise automatica temporariamente indisponivel.' : null,
+        ]);
     }
 
     public function reanalisar(string $id): void
     {
-        $this->exigirLogin();
-        $chamado = $this->model->porId((int)$id);
-        if (!$chamado) { $this->json(['erro'=>'Não encontrado.'], 404); return; }
+        $this->exigirAdmin();
+        $this->exigirCsrf($_SERVER['HTTP_X_CSRF_TOKEN'] ?? '');
 
-        $a = $this->ia->analisarChamado($chamado['titulo'], $chamado['descricao']);
-        $this->model->salvarIA((int)$id, $a['categoria'], $a['prioridade'], $a['analise'], $a['sugestao']);
-        $this->json(['sucesso'=>true, 'analise'=>$a]);
+        $chamadoId = filter_var($id, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+        $chamado = $chamadoId ? $this->chamado->porId($chamadoId) : false;
+        if (!$chamado) {
+            $this->json(['erro' => 'Chamado nao encontrado.'], 404);
+        }
+
+        $analise = $this->ia->analisarChamado($chamado['titulo'], $chamado['descricao']);
+        $this->chamado->salvarIA(
+            $chamadoId,
+            $analise['categoria'],
+            $analise['prioridade'],
+            $analise['analise'],
+            $analise['sugestao']
+        );
+        $this->json([
+            'sucesso' => $this->ia->ultimoErro() === null,
+            'analise' => $analise,
+            'erro' => $this->ia->ultimoErro() ? 'Nao foi possivel atualizar a analise agora.' : null,
+        ]);
     }
 }

@@ -14,8 +14,9 @@ class Database
                 PDO::ATTR_EMULATE_PREPARES   => false,
             ]);
         } catch (PDOException $e) {
-            error_log($e->getMessage());
-            die(json_encode(['erro' => 'Falha na conexão com o banco.']));
+            // Evita gravar DSN, SQL ou credenciais completas nos logs.
+            error_log('[Database] Falha de conexao. Codigo: ' . $e->getCode());
+            die('Falha na conexão com o banco de dados.');
         }
     }
 

@@ -1,68 +1,123 @@
 <?php
+
 class ChamadoController extends Controller
 {
-    private Chamado $model;
+    private Chamado $chamado;
     private GeminiService $ia;
 
     public function __construct()
     {
-        $this->model = new Chamado();
-        $this->ia    = new GeminiService();
+        $this->chamado = new Chamado();
+        $this->ia = new GeminiService();
     }
 
-    public function index(): void
+    public function meusChamados(): void
     {
         $this->exigirLogin();
-        $uid      = Usuario::perfil() === 'usuario' ? Usuario::idLogado() : null;
-        $chamados = $this->model->todosComUsuario($uid);
-        $contagem = $this->model->contarPorStatus();
-        $this->renderizar('chamados/index', compact('chamados', 'contagem') + ['titulo' => 'Painel de Chamados']);
+        if ($this->isAdmin()) {
+            $this->redirecionar('/admin');
+        }
+
+        $chamados = $this->chamado->todosComUsuario($this->uid());
+        $contagem = $this->chamado->contarPorUsuario($this->uid());
+        $this->renderizar('chamados/index', compact('chamados', 'contagem') + ['titulo' => 'Meus Chamados']);
     }
 
     public function criar(): void
     {
         $this->exigirLogin();
-        if ($this->isPost()) {
-            $titulo    = $this->post('titulo');
-            $descricao = $this->post('descricao');
-            if (!$titulo || !$descricao) { $this->flash('erro', 'Preencha todos os campos.'); $this->redirecionar('/chamados/criar'); return; }
-
-            $id     = $this->model->inserir(['titulo'=>$titulo,'descricao'=>$descricao,'usuario_id'=>Usuario::idLogado(),'status'=>'aberto']);
-            $analise= $this->ia->analisarChamado($titulo, $descricao);
-            $this->model->salvarIA($id, $analise['categoria'], $analise['prioridade'], $analise['analise'], $analise['sugestao']);
-
-            $this->flash('sucesso', "Chamado #$id criado e analisado pela IA!");
-            $this->redirecionar('/chamados/'.$id);
-            return;
+        if ($this->isAdmin()) {
+            $this->redirecionar('/admin');
         }
+
+        if ($this->isPost()) {
+            $this->exigirCsrf();
+            $titulo = $this->post('titulo');
+            $descricao = $this->post('descricao');
+
+            if (mb_strlen($titulo) < 5 || mb_strlen($titulo) > 200
+                || mb_strlen($descricao) < 20 || mb_strlen($descricao) > 5000) {
+                $this->flash('erro', 'Revise o titulo e a descricao do chamado.');
+                $this->redirecionar('/chamados/criar');
+            }
+
+            $id = $this->chamado->inserir([
+                'titulo' => $titulo,
+                'descricao' => $descricao,
+                'usuario_id' => $this->uid(),
+                'status' => 'aberto',
+            ]);
+
+            $analise = $this->ia->analisarChamado($titulo, $descricao);
+            $this->chamado->salvarIA(
+                $id,
+                $analise['categoria'],
+                $analise['prioridade'],
+                $analise['analise'],
+                $analise['sugestao']
+            );
+
+            $mensagem = $this->ia->ultimoErro()
+                ? "Chamado #{$id} aberto. A classificacao automatica ficou pendente."
+                : "Chamado #{$id} aberto e classificado.";
+            $this->flash('sucesso', $mensagem);
+            $this->redirecionar('/meus-chamados/' . $id);
+        }
+
         $this->renderizar('chamados/criar', ['titulo' => 'Novo Chamado']);
     }
 
     public function detalhar(string $id): void
     {
         $this->exigirLogin();
-        $chamado     = $this->model->detalhe((int)$id);
-        if (!$chamado) { $this->flash('erro', 'Chamado não encontrado.'); $this->redirecionar('/chamados'); return; }
-        $comentarios = $this->model->comentarios((int)$id);
-        $this->renderizar('chamados/detalhar', compact('chamado','comentarios') + ['titulo' => "Chamado #$id"]);
+        $chamadoId = $this->idValido($id);
+
+        if ($this->isAdmin()) {
+            $this->redirecionar('/admin/chamado/' . $chamadoId);
+        }
+
+        $chamado = $this->chamado->detalhe($chamadoId);
+        if (!$chamado || (int) $chamado['usuario_id'] !== $this->uid()) {
+            $this->flash('erro', 'Chamado nao encontrado.');
+            $this->redirecionar('/meus-chamados');
+        }
+
+        $comentarios = $this->chamado->comentarios($chamadoId);
+        $this->renderizar(
+            'chamados/detalhar',
+            compact('chamado', 'comentarios') + ['titulo' => "Chamado #{$chamadoId}"]
+        );
     }
 
     public function comentar(string $id): void
     {
         $this->exigirLogin();
-        $txt = $this->post('texto');
-        if ($txt) $this->model->addComentario((int)$id, Usuario::idLogado(), $txt);
-        $this->redirecionar('/chamados/'.$id);
+        $this->exigirCsrf();
+
+        $chamadoId = $this->idValido($id);
+        $chamado = $this->chamado->porId($chamadoId);
+        $texto = $this->post('texto');
+
+        // A propriedade é validada novamente no POST para impedir IDOR por URL manipulada.
+        if (!$chamado || (int) $chamado['usuario_id'] !== $this->uid()) {
+            http_response_code(404);
+            exit('Chamado nao encontrado.');
+        }
+
+        if ($chamado['status'] !== 'fechado' && mb_strlen($texto) >= 1 && mb_strlen($texto) <= 3000) {
+            $this->chamado->addComentario($chamadoId, $this->uid(), $texto);
+        }
+
+        $this->redirecionar('/meus-chamados/' . $chamadoId);
     }
 
-    public function atualizarStatus(string $id): void
+    private function idValido(string $id): int
     {
-        $this->exigirLogin();
-        $status = $this->post('status');
-        if (in_array($status, ['aberto','em_andamento','resolvido','fechado'])) {
-            $this->model->atualizar((int)$id, ['status'=>$status]);
-            $this->flash('sucesso', 'Status atualizado.');
+        $valor = filter_var($id, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+        if (!$valor) {
+            http_response_code(404);
+            exit('Recurso nao encontrado.');
         }
-        $this->redirecionar('/chamados/'.$id);
+        return $valor;
     }
 }

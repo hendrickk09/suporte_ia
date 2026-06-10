@@ -32,9 +32,4 @@ abstract class Model
         $vals[] = $id;
         return $this->db->executar("UPDATE {$this->tabela} SET $set WHERE {$this->pk} = ?", $vals)->rowCount() > 0;
     }
-
-    public function contar(): int
-    {
-        return (int) ($this->db->buscarUm("SELECT COUNT(*) as t FROM {$this->tabela}")['t'] ?? 0);
-    }
 }

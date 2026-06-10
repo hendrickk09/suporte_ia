@@ -1,6 +1,30 @@
 document.addEventListener('DOMContentLoaded', () => {
+  iniciarAlternanciaTema();
   iniciarPreviewIA();
 });
+
+function iniciarAlternanciaTema() {
+  const btn = document.getElementById('theme-toggle');
+  if (!btn) return;
+
+  function aplicarEstado() {
+    const claro = document.documentElement.classList.contains('modo-claro');
+    btn.classList.toggle('is-light', claro);
+    btn.setAttribute('aria-pressed', claro ? 'true' : 'false');
+    btn.setAttribute('aria-label', claro ? 'Alternar para modo escuro' : 'Alternar para modo claro');
+    btn.setAttribute('title', claro ? 'Alternar para modo escuro' : 'Alternar para modo claro');
+  }
+
+  aplicarEstado();
+
+  btn.addEventListener('click', () => {
+    const claro = document.documentElement.classList.toggle('modo-claro');
+    try {
+      localStorage.setItem('supporteia-tema', claro ? 'claro' : 'escuro');
+    } catch (e) {}
+    aplicarEstado();
+  });
+}
 
 function iniciarPreviewIA() {
   const titulo    = document.getElementById('titulo');
@@ -15,31 +39,56 @@ function iniciarPreviewIA() {
     const d = descricao.value.trim();
     if (t.length < 10 || d.length < 20) return;
 
-    preview.classList.add('ativo');
-    preview.innerHTML = `<div class="ia-preview-header"><div class="ia-dot"></div>IA analisando...</div><p class="ia-loading">Classificando com Gemini...</p>`;
+    preview.className = 'ia-preview ativo';
+    preview.innerHTML = `
+      <div class="ia-preview-header">
+        <div class="ia-dot"></div> IA analisando o problema...
+      </div>
+      <p style="font-size:.82rem;color:var(--text3);font-family:var(--font-mono)">Aguarde...</p>`;
 
     fetch(APP_URL + '/ia/analisar', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': CSRF_TOKEN
+      },
       body: JSON.stringify({ titulo: t, descricao: d })
     })
-    .then(r => r.json())
+    .then(r => {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    })
     .then(data => {
-      if (!data.sucesso) return;
+      if (!data.sucesso) {
+        preview.innerHTML = `<p style="color:var(--red);font-size:.85rem">⚠️ ${data.erro || 'Erro na análise da IA.'}</p>`;
+        return;
+      }
       const a = data.analise;
       preview.innerHTML = `
-        <div class="ia-preview-header"><div class="ia-dot" style="animation:none"></div>Análise da IA — Google Gemini</div>
+        <div class="ia-preview-header">
+          <div class="ia-dot" style="animation:none;background:#2ecc71"></div>
+          Análise da IA — Google Gemini
+        </div>
         <div class="ia-grid">
-          <div class="ia-item"><label>Categoria</label><span class="badge badge-andamento">${a.categoria}</span></div>
-          <div class="ia-item"><label>Prioridade sugerida</label><span class="badge badge-${a.prioridade}">${a.prioridade.toUpperCase()}</span></div>
+          <div class="ia-item">
+            <label>Categoria</label>
+            <span class="cat-tag">${escHtml(a.categoria)}</span>
+          </div>
+          <div class="ia-item">
+            <label>Prioridade sugerida</label>
+            <span class="badge badge-${escHtml(a.prioridade)}">${escHtml(a.prioridade.toUpperCase())}</span>
+          </div>
         </div>
         <div class="ia-analise-texto">
-          <strong style="font-size:.78rem;color:var(--text3);font-family:var(--font-mono);text-transform:uppercase">Diagnóstico</strong><br>${a.analise}<br><br>
-          <strong style="font-size:.78rem;color:var(--text3);font-family:var(--font-mono);text-transform:uppercase">Sugestão</strong><br>${a.sugestao}
+          <strong style="font-size:.72rem;color:var(--text3);font-family:var(--font-mono);text-transform:uppercase">Diagnóstico</strong><br>
+          ${escHtml(a.analise)}<br><br>
+          <strong style="font-size:.72rem;color:var(--text3);font-family:var(--font-mono);text-transform:uppercase">Sugestão</strong><br>
+          ${escHtml(a.sugestao)}
         </div>`;
     })
-    .catch(() => {
-      preview.innerHTML = `<p class="ia-loading" style="color:var(--red)">Falha na análise. Verifique a chave da API.</p>`;
+    .catch(err => {
+      console.error('[IA Preview]', err);
+      preview.innerHTML = `<p style="color:var(--red);font-size:.85rem">⚠️ Falha na conexão com a IA. Verifique a chave da API.</p>`;
     });
   }
 
@@ -49,19 +98,29 @@ function iniciarPreviewIA() {
 
 function reanalisarChamado(id) {
   const btn = document.getElementById('btn-reanalisar');
-  if (btn) { btn.textContent = 'Analisando...'; btn.disabled = true; }
+  if (btn) { btn.textContent = '⟳ Analisando...'; btn.disabled = true; }
 
-  fetch(APP_URL + '/ia/reanalisar/' + id, { method: 'POST' })
+  fetch(APP_URL + '/ia/reanalisar/' + id, {
+    method: 'POST',
+    headers: { 'X-CSRF-Token': CSRF_TOKEN }
+  })
     .then(r => r.json())
     .then(data => {
-      if (data.sucesso) location.reload();
-      else {
+      if (data.sucesso) {
+        location.reload();
+      } else {
         alert('Erro: ' + (data.erro || 'Falha desconhecida'));
         if (btn) { btn.textContent = '⟳ Reanalisar com IA'; btn.disabled = false; }
       }
     })
     .catch(() => {
-      alert('Erro de conexão.');
+      alert('Erro de conexão com a IA.');
       if (btn) { btn.textContent = '⟳ Reanalisar com IA'; btn.disabled = false; }
     });
+}
+
+function escHtml(str) {
+  const d = document.createElement('div');
+  d.appendChild(document.createTextNode(str || ''));
+  return d.innerHTML;
 }

@@ -32,7 +32,7 @@ class Router
         }
 
         $rota = $this->encontrar($metodo, $uri);
-        if (!$rota) { http_response_code(404); echo '<h1>404 — Página não encontrada</h1>'; return; }
+        if (!$rota) { http_response_code(404); require_once __DIR__ . '/../../views/404.php'; return; }
 
         $ctrl = new $rota['ctrl']();
         $m    = $rota['metodo'];
@@ -45,7 +45,8 @@ class Router
         $base = parse_url(APP_URL, PHP_URL_PATH);
         $uri  = str_replace($base, '', $uri);
         $uri  = parse_url($uri, PHP_URL_PATH);
-        return '/' . trim($uri, '/') ?: '/';
+        $uri  = '/' . trim($uri ?? '', '/');
+        return $uri === '/' ? '/' : rtrim($uri, '/');
     }
 
     private function encontrar(string $metodo, string $uri): ?array
@@ -53,7 +54,7 @@ class Router
         if (isset($this->rotas[$metodo][$uri])) return $this->rotas[$metodo][$uri];
 
         foreach ($this->rotas[$metodo] ?? [] as $padrao => $rota) {
-            $regex = '#^' . preg_replace('/\{[a-z]+\}/', '([^/]+)', $padrao) . '$#';
+            $regex = '#^' . preg_replace('/\{[a-z_]+\}/', '([^/]+)', $padrao) . '$#';
             if (preg_match($regex, $uri, $m)) {
                 array_shift($m);
                 $rota['params'] = $m;

@@ -1,40 +1,45 @@
-<?php require_once __DIR__ . '/../layouts/header.php'; ?>
-<div class="page-header">
-  <h1>Painel de Chamados</h1>
-  <p>Gerencie e acompanhe todas as solicitações de suporte</p>
-</div>
+<?php $perfil_layout = 'usuario'; require_once __DIR__ . '/../layouts/base.php'; ?>
 
-<div class="stats-bar">
-  <div class="stat-card aberto"><div class="stat-label">Abertos</div><div class="stat-value"><?= $contagem['aberto'] ?></div></div>
-  <div class="stat-card andamento"><div class="stat-label">Em andamento</div><div class="stat-value"><?= $contagem['em_andamento'] ?></div></div>
-  <div class="stat-card resolvido"><div class="stat-label">Resolvidos</div><div class="stat-value"><?= $contagem['resolvido'] ?></div></div>
-  <div class="stat-card fechado"><div class="stat-label">Fechados</div><div class="stat-value"><?= $contagem['fechado'] ?></div></div>
-</div>
-
-<div class="tabela-container">
-  <div class="tabela-header">
-    <h2>Todos os chamados</h2>
-    <a href="<?= APP_URL ?>/chamados/criar" class="btn btn-primary" style="font-size:.82rem;padding:7px 14px">+ Novo Chamado</a>
+<div class="page-header space-between">
+  <div>
+    <h1>Meus Chamados</h1>
+    <p>Acompanhe suas solicitacoes de suporte</p>
   </div>
-  <?php if (empty($chamados)): ?>
-    <div class="empty-state"><h3>Nenhum chamado encontrado</h3><p>Clique em "Novo Chamado" para registrar sua primeira solicitação.</p></div>
-  <?php else: ?>
-  <table>
-    <thead><tr><th>#</th><th>Título</th><th>Categoria (IA)</th><th>Prioridade (IA)</th><th>Status</th><th>Solicitante</th><th>Data</th></tr></thead>
-    <tbody>
-    <?php foreach ($chamados as $c): ?>
-      <tr>
-        <td class="col-id"><?= $c['id'] ?></td>
-        <td class="col-titulo"><a href="<?= APP_URL ?>/chamados/<?= $c['id'] ?>"><?= htmlspecialchars($c['titulo']) ?></a></td>
-        <td><span style="font-size:.82rem;color:var(--text2)"><?= htmlspecialchars($c['categoria'] ?? '—') ?></span></td>
-        <td><span class="badge badge-<?= $c['prioridade'] ?? 'media' ?>"><?= strtoupper($c['prioridade'] ?? 'MEDIA') ?></span></td>
-        <td><span class="badge badge-<?= str_replace('_','-',$c['status']) ?>"><?= strtoupper(str_replace('_',' ',$c['status'])) ?></span></td>
-        <td class="col-usuario"><?= htmlspecialchars($c['usuario_nome']) ?></td>
-        <td class="col-data"><?= date('d/m/Y H:i', strtotime($c['criado_em'])) ?></td>
-      </tr>
-    <?php endforeach; ?>
-    </tbody>
-  </table>
-  <?php endif; ?>
+  <a href="<?= APP_URL ?>/chamados/criar" class="btn btn-primary">+ Novo Chamado</a>
 </div>
+
+<div class="stats-bar stats-usuario">
+  <div class="stat-mini"><span class="stat-num"><?= $contagem['aberto'] ?></span><span>Abertos</span></div>
+  <div class="stat-mini"><span class="stat-num andamento"><?= $contagem['em_andamento'] ?></span><span>Em andamento</span></div>
+  <div class="stat-mini"><span class="stat-num resolvido"><?= $contagem['resolvido'] ?></span><span>Resolvidos</span></div>
+  <div class="stat-mini"><span class="stat-num fechado"><?= $contagem['fechado'] ?></span><span>Fechados</span></div>
+</div>
+
+<?php if (empty($chamados)): ?>
+<div class="empty-state">
+  <div style="font-size:3rem;margin-bottom:12px">+</div>
+  <h3>Nenhum chamado ainda</h3>
+  <p>Clique em "Novo Chamado" para registrar seu primeiro problema.</p>
+  <a href="<?= APP_URL ?>/chamados/criar" class="btn btn-primary" style="margin-top:16px">+ Abrir Chamado</a>
+</div>
+<?php else: ?>
+<div class="chamados-lista">
+  <?php foreach ($chamados as $c): ?>
+  <a href="<?= APP_URL ?>/meus-chamados/<?= $c['id'] ?>" class="chamado-card">
+    <div class="chamado-card-header">
+      <span class="chamado-id">#<?= $c['id'] ?></span>
+      <span class="badge badge-<?= str_replace('_','-',$c['status']) ?>"><?= strtoupper(str_replace('_',' ',$c['status'])) ?></span>
+    </div>
+    <h3 class="chamado-titulo"><?= htmlspecialchars($c['titulo']) ?></h3>
+    <p class="chamado-descricao"><?= htmlspecialchars(mb_substr($c['descricao'], 0, 100)) ?>...</p>
+    <div class="chamado-card-footer">
+      <span class="cat-tag"><?= htmlspecialchars($c['categoria'] ?? 'Aguardando IA') ?></span>
+      <span class="badge badge-<?= $c['prioridade'] ?? 'media' ?>"><?= strtoupper($c['prioridade'] ?? 'MEDIA') ?></span>
+      <span class="chamado-data"><?= date('d/m/Y', strtotime($c['criado_em'])) ?></span>
+    </div>
+  </a>
+  <?php endforeach; ?>
+</div>
+<?php endif; ?>
+
 <?php require_once __DIR__ . '/../layouts/footer.php'; ?>

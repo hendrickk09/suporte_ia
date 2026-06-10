@@ -7,16 +7,29 @@ define('DB_CHARSET', 'utf8mb4');
 
 define('APP_NAME', 'SupporteIA');
 define('APP_URL', 'http://localhost/suporte_ia/public');
-define('APP_VERSION', '1.0.0');
+define('APP_VERSION', '1.1.0');
 
-define('GEMINI_API_KEY', 'SUA_CHAVE_AQUI');
-define('GEMINI_API_URL', 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent');
+define('GEMINI_API_KEY', getenv('GEMINI_API_KEY') ?: 'SUA_CHAVE_AQUI');
+define('GEMINI_MODEL', 'gemini-3.1-flash-lite');
+define('GEMINI_API_URL', 'https://generativelanguage.googleapis.com/v1beta/models/' . GEMINI_MODEL . ':generateContent');
 
-define('SESSION_NAME', 'suporte_ia_session');
-
-if (session_status() === PHP_SESSION_NONE) {
-    session_name(SESSION_NAME);
+if (PHP_SAPI !== 'cli' && session_status() === PHP_SESSION_NONE) {
+    $https = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
+    ini_set('session.use_strict_mode', '1');
+    ini_set('session.use_only_cookies', '1');
+    session_name('suporte_ia_sess');
+    session_set_cookie_params([
+        'lifetime' => 0,
+        'path' => '/',
+        'secure' => $https,
+        'httponly' => true,
+        'samesite' => 'Lax',
+    ]);
     session_start();
+    header('X-Frame-Options: DENY');
+    header('X-Content-Type-Options: nosniff');
+    header('Referrer-Policy: strict-origin-when-cross-origin');
+    header('Permissions-Policy: camera=(), microphone=(), geolocation=()');
 }
 
 spl_autoload_register(function (string $classe) {
@@ -25,8 +38,9 @@ spl_autoload_register(function (string $classe) {
         'Router'            => __DIR__ . '/../src/Core/Router.php',
         'Controller'        => __DIR__ . '/../src/Core/Controller.php',
         'Model'             => __DIR__ . '/../src/Core/Model.php',
-        'ChamadoController' => __DIR__ . '/../src/Controllers/ChamadoController.php',
         'AuthController'    => __DIR__ . '/../src/Controllers/AuthController.php',
+        'ChamadoController' => __DIR__ . '/../src/Controllers/ChamadoController.php',
+        'AdminController'   => __DIR__ . '/../src/Controllers/AdminController.php',
         'IAController'      => __DIR__ . '/../src/Controllers/IAController.php',
         'Chamado'           => __DIR__ . '/../src/Models/Chamado.php',
         'Usuario'           => __DIR__ . '/../src/Models/Usuario.php',
