@@ -40,4 +40,3 @@ Não coloque a chave diretamente em commits, prints, logs ou arquivos públicos.
 C:\xampp\php\php.exe tests\security_smoke.php
 ```
 
-Em produção, use HTTPS e aplique rate limiting adicional no servidor web ou proxy reverso.
