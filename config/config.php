@@ -1,16 +1,33 @@
 <?php
-define('DB_HOST', 'localhost');
-define('DB_NAME', 'suporte_ia');
-define('DB_USER', 'root');
-define('DB_PASS', '');
+$configLocal = [];
+$arquivoConfigLocal = __DIR__ . '/config.local.php';
+if (is_file($arquivoConfigLocal)) {
+    $configLocal = require $arquivoConfigLocal;
+    if (!is_array($configLocal)) {
+        throw new RuntimeException('config.local.php deve retornar um array.');
+    }
+}
+
+$config = static function (string $chave, string $padrao = '') use ($configLocal): string {
+    $ambiente = getenv($chave);
+    if ($ambiente !== false && $ambiente !== '') {
+        return $ambiente;
+    }
+    return (string) ($configLocal[$chave] ?? $padrao);
+};
+
+define('DB_HOST', $config('DB_HOST', 'localhost'));
+define('DB_NAME', $config('DB_NAME', 'suporte_ia'));
+define('DB_USER', $config('DB_USER', 'root'));
+define('DB_PASS', $config('DB_PASS'));
 define('DB_CHARSET', 'utf8mb4');
 
 define('APP_NAME', 'SupporteIA');
-define('APP_URL', 'http://localhost/suporte_ia/public');
+define('APP_URL', rtrim($config('APP_URL', 'http://localhost/suporte_ia/public'), '/'));
 define('APP_VERSION', '1.1.0');
 
-define('GEMINI_API_KEY', getenv('GEMINI_API_KEY') ?: 'SUA_CHAVE_AQUI');
-define('GEMINI_MODEL', 'gemini-3.1-flash-lite');
+define('GEMINI_API_KEY', $config('GEMINI_API_KEY', 'SUA_CHAVE_AQUI'));
+define('GEMINI_MODEL', $config('GEMINI_MODEL', 'gemini-3.1-flash-lite'));
 define('GEMINI_API_URL', 'https://generativelanguage.googleapis.com/v1beta/models/' . GEMINI_MODEL . ':generateContent');
 
 if (PHP_SAPI !== 'cli' && session_status() === PHP_SESSION_NONE) {
