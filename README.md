@@ -440,9 +440,6 @@ Este é um projeto integrador de **Programação Orientada a Objetos com PHP** d
 ### Novo Chamado com Preview de IA
 <img width="1208" height="1164" alt="Image" src="https://github.com/user-attachments/assets/833028c8-aabb-44d1-ab88-5f86d74e58a2" />
 
-### Detalhe do Chamado
-![Detalhe](./docs/screenshots/detalhe.png)
-
 ---
 
 ## 🐛 Desafios Enfrentados
