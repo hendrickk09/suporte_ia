@@ -25,9 +25,13 @@ class GeminiService
 
     private function chaveConfigurada(): bool
     {
-        return defined('GEMINI_API_KEY')
-            && GEMINI_API_KEY !== ''
-            && GEMINI_API_KEY !== 'SUA_CHAVE_AQUI';
+        if (!defined('GEMINI_API_KEY')) {
+            return false;
+        }
+
+        $chave = trim(GEMINI_API_KEY);
+        return $chave !== ''
+            && !in_array($chave, ['SUA_CHAVE_AQUI', 'COLE_SUA_CHAVE_AQUI'], true);
     }
 
     private function minimizarDados(string $texto, int $limite): string

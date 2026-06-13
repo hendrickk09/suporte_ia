@@ -17,6 +17,7 @@ $config = static function (string $chave, string $padrao = '') use ($configLocal
 };
 
 define('DB_HOST', $config('DB_HOST', 'localhost'));
+define('DB_PORT', $config('DB_PORT', '3306'));
 define('DB_NAME', $config('DB_NAME', 'suporte_ia'));
 define('DB_USER', $config('DB_USER', 'root'));
 define('DB_PASS', $config('DB_PASS'));
@@ -24,10 +25,10 @@ define('DB_CHARSET', 'utf8mb4');
 
 define('APP_NAME', 'SupporteIA');
 define('APP_URL', rtrim($config('APP_URL', 'http://localhost/suporte_ia/public'), '/'));
-define('APP_VERSION', '1.1.0');
+define('APP_VERSION', '1.1.1');
 
 define('GEMINI_API_KEY', $config('GEMINI_API_KEY', 'SUA_CHAVE_AQUI'));
-define('GEMINI_MODEL', $config('GEMINI_MODEL', 'gemini-3.1-flash-lite'));
+define('GEMINI_MODEL', $config('GEMINI_MODEL', 'gemini-2.5-flash-lite'));
 define('GEMINI_API_URL', 'https://generativelanguage.googleapis.com/v1beta/models/' . GEMINI_MODEL . ':generateContent');
 
 if (PHP_SAPI !== 'cli' && session_status() === PHP_SESSION_NONE) {

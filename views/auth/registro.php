@@ -26,7 +26,7 @@ try {
       <p>SupporteIA — Acesso ao sistema</p>
     </div>
     <?php if (isset($_SESSION['flash'])): ?>
-      <div class="flash flash-<?= $_SESSION['flash']['tipo'] ?>"><?= htmlspecialchars($_SESSION['flash']['mensagem']) ?></div>
+      <div class="flash flash-<?= htmlspecialchars($_SESSION['flash']['tipo']) ?>"><?= htmlspecialchars($_SESSION['flash']['mensagem']) ?></div>
       <?php unset($_SESSION['flash']); ?>
     <?php endif; ?>
     <form method="POST" action="<?= APP_URL ?>/registro">
@@ -48,6 +48,6 @@ try {
     <p class="auth-footer">Já tem conta? <a href="<?= APP_URL ?>/login">Entrar</a><br><a href="<?= APP_URL ?>/privacidade">Privacidade</a></p>
   </div>
 </div>
-<script src="<?= APP_URL ?>/js/app.js?v=tema-2"></script>
+<script src="<?= APP_URL ?>/js/app.js?v=ia-3"></script>
 </body>
 </html>

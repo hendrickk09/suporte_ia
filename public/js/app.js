@@ -33,11 +33,18 @@ function iniciarPreviewIA() {
   if (!titulo || !descricao || !preview) return;
 
   let timer = null;
+  let analisando = false;
+  let ultimoConteudo = '';
 
   function analisar() {
     const t = titulo.value.trim();
     const d = descricao.value.trim();
     if (t.length < 10 || d.length < 20) return;
+
+    const conteudo = `${t}\n${d}`;
+    if (analisando || conteudo === ultimoConteudo) return;
+    analisando = true;
+    ultimoConteudo = conteudo;
 
     preview.className = 'ia-preview ativo';
     preview.innerHTML = `
@@ -60,6 +67,7 @@ function iniciarPreviewIA() {
     })
     .then(data => {
       if (!data.sucesso) {
+        ultimoConteudo = '';
         preview.innerHTML = `<p style="color:var(--red);font-size:.85rem">⚠️ ${data.erro || 'Erro na análise da IA.'}</p>`;
         return;
       }
@@ -87,13 +95,17 @@ function iniciarPreviewIA() {
         </div>`;
     })
     .catch(err => {
+      ultimoConteudo = '';
       console.error('[IA Preview]', err);
       preview.innerHTML = `<p style="color:var(--red);font-size:.85rem">⚠️ Falha na conexão com a IA. Verifique a chave da API.</p>`;
+    })
+    .finally(() => {
+      analisando = false;
     });
   }
 
-  titulo.addEventListener('input',    () => { clearTimeout(timer); timer = setTimeout(analisar, 1800); });
-  descricao.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(analisar, 1800); });
+  titulo.addEventListener('input',    () => { clearTimeout(timer); timer = setTimeout(analisar, 4000); });
+  descricao.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(analisar, 4000); });
 }
 
 function reanalisarChamado(id) {

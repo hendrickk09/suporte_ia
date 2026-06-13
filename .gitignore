@@ -1,4 +1,10 @@
 /*.zip
+/output/
 /.env
 /.env.*
 /config/config.local.php
+/.vscode/
+/.idea/
+*.log
+.DS_Store
+Thumbs.db
