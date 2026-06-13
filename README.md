@@ -125,7 +125,7 @@ A aplicação também aceita as seguintes variáveis de ambiente:
 
 Não há carregador de arquivo `.env` neste projeto. Configure as variáveis diretamente no sistema operacional/servidor ou use `config/config.local.php`.
 
-Crie uma chave em [Google AI Studio](https://aistudio.google.com/app/apikey) e nunca a publique no GitHub.
+Crie uma chave em [Google AI Studio](https://aistudio.google.com/app/apikey)
 
 ## Execução do projeto
 
