@@ -263,6 +263,8 @@ suporte_ia/
 |-- database/
 |   |-- schema.sql
 |   `-- migration_v1_1.sql
+|-- docs/
+|   `-- POO.md
 |-- public/
 |   |-- css/
 |   |-- js/
@@ -298,7 +300,15 @@ O sistema utiliza uma implementação manual do padrão MVC:
 - **Services:** integração isolada com a API Gemini;
 - **Core:** roteamento, conexão PDO e recursos compartilhados.
 
-As classes aplicam encapsulamento, herança e abstração para separar autenticação, chamados, banco de dados e integração externa.
+Na implementação orientada a objetos:
+
+- `Model` concentra operações comuns de persistência e é herdado por `Usuario` e `Chamado`;
+- `Controller` oferece autenticação, autorização, CSRF, renderização e respostas compartilhadas aos controllers concretos;
+- `Database` encapsula a conexão PDO e mantém uma única instância durante a requisição;
+- `GeminiService` isola a integração externa, a normalização da resposta e o fallback;
+- os controllers recebem models e serviços por composição, mantendo cada classe com uma responsabilidade definida.
+
+A documentação acadêmica completa, com os pilares de POO, responsabilidades das classes e diagramas, está em [docs/POO.md](docs/POO.md).
 
 ## Segurança
 
