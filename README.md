@@ -75,7 +75,8 @@ O script cria o banco `suporte_ia` e as tabelas:
 - `usuarios`;
 - `chamados`;
 - `comentarios`;
-- `historico_status`.
+- `historico_status`;
+- `sessoes`, usada quando `SESSION_DRIVER=database`.
 
 Para atualizar uma instalação antiga que ainda não possui o histórico de status, importe somente `database/migration_v1_1.sql`.
 
@@ -122,6 +123,7 @@ A aplicação também aceita as seguintes variáveis de ambiente:
 | `APP_URL` | Sim, se a URL for diferente do padrão | `http://localhost/suporte_ia/public` |
 | `GEMINI_API_KEY` | Somente para usar a IA | não configurada |
 | `GEMINI_MODEL` | Não | `gemini-2.5-flash-lite` |
+| `SESSION_DRIVER` | Não | `files` |
 
 Não há carregador de arquivo `.env` neste projeto. Configure as variáveis diretamente no sistema operacional/servidor ou use `config/config.local.php`.
 
@@ -168,6 +170,45 @@ C:\xampp\php\php.exe -S localhost:8000 -t public public\router.php
 ```
 
 Acesse `http://localhost:8000/login`.
+
+### Opção C: Vercel
+
+O projeto possui uma configuração básica para Vercel usando o runtime comunitário `vercel-php`. Essa opção exige um banco MySQL externo, porque o MySQL local do XAMPP não fica acessível na nuvem.
+
+Antes do deploy:
+
+1. Crie um banco MySQL público em um provedor externo.
+2. Importe `database/schema.sql` nesse banco.
+3. Configure as variáveis de ambiente no painel do Vercel:
+
+```text
+DB_HOST
+DB_PORT
+DB_NAME
+DB_USER
+DB_PASS
+APP_URL
+GEMINI_API_KEY
+GEMINI_MODEL
+SESSION_DRIVER=database
+```
+
+Use `APP_URL` com a URL final do Vercel, por exemplo:
+
+```text
+https://nome-do-projeto.vercel.app
+```
+
+Depois, conecte o repositório do GitHub no Vercel ou use a CLI:
+
+```powershell
+npm i -g vercel
+vercel login
+vercel
+vercel --prod
+```
+
+Observação: o suporte a PHP no Vercel depende de runtime comunitário. Para uma entrega acadêmica com menor risco operacional, XAMPP local ou uma hospedagem PHP tradicional continuam sendo opções mais previsíveis.
 
 ## Primeiro acesso administrativo
 
@@ -257,6 +298,8 @@ Use `Ctrl + F5` para ignorar o cache do navegador.
 
 ```text
 suporte_ia/
+|-- api/
+|   `-- index.php
 |-- config/
 |   |-- config.php
 |   `-- config.example.php
@@ -287,7 +330,9 @@ suporte_ia/
 |   `-- layouts/
 |-- LICENSE
 |-- README.md
-`-- SECURITY.md
+|-- SECURITY.md
+|-- vercel.json
+`-- .vercelignore
 ```
 
 ## Arquitetura e orientação a objetos

@@ -9,4 +9,5 @@ return [
     'APP_URL' => 'http://localhost/suporte_ia/public',
     'GEMINI_API_KEY' => 'SUA_CHAVE_AQUI',
     'GEMINI_MODEL' => 'gemini-2.5-flash-lite',
+    'SESSION_DRIVER' => 'files',
 ];

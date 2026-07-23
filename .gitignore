@@ -3,6 +3,7 @@
 /.env
 /.env.*
 /config/config.local.php
+/.vercel/
 /.vscode/
 /.idea/
 *.log

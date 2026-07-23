@@ -9,3 +9,10 @@ CREATE TABLE IF NOT EXISTS historico_status (
     FOREIGN KEY (chamado_id) REFERENCES chamados(id) ON DELETE CASCADE,
     FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
 );
+
+CREATE TABLE IF NOT EXISTS sessoes (
+    id VARCHAR(128) PRIMARY KEY,
+    payload MEDIUMTEXT NOT NULL,
+    ultimo_acesso INT NOT NULL,
+    INDEX idx_sessoes_ultimo_acesso (ultimo_acesso)
+);

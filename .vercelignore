@@ -1,0 +1,10 @@
+config/config.local.php
+database/*.sql
+docs/
+scripts/
+tests/
+README.md
+SECURITY.md
+LICENSE
+*.zip
+output/
